@@ -41,6 +41,16 @@ type DetailItem = {
   value: string
 }
 
+type ServerGroupState = 'loading' | 'empty' | 'ready'
+
+type ServerGroup = {
+  key: string
+  name: string
+  rows: NodeWithStatus[]
+  online: number
+  state: ServerGroupState
+}
+
 type PingTooltip = {
   left: number
   svgX: number
@@ -114,6 +124,61 @@ const toolbarStats = computed(() => {
     upload: formatBytes(traffic.up, 1),
     download: formatBytes(traffic.down, 1),
   }
+})
+
+function resolveGroupName(row: NodeWithStatus): string {
+  // 中文说明：后端可能返回空分组，界面统一归到默认分组，避免出现空标题 Card。
+  return row.node.group.trim() || '默认分组'
+}
+
+const groupedServerRows = computed<ServerGroup[]>(() => {
+  const groupMap = new Map<string, ServerGroup>()
+
+  for (const row of serverRows.value) {
+    const name = resolveGroupName(row)
+    const key = `group:${name}`
+    const group = groupMap.get(key)
+
+    if (group) {
+      group.rows.push(row)
+      if (row.online) group.online += 1
+      continue
+    }
+
+    groupMap.set(key, {
+      key,
+      name,
+      rows: [row],
+      online: row.online ? 1 : 0,
+      state: 'ready',
+    })
+  }
+
+  return Array.from(groupMap.values())
+})
+
+const displayServerGroups = computed<ServerGroup[]>(() => {
+  if (!hasLoaded.value) {
+    return [{
+      key: 'state:loading',
+      name: '服务器',
+      rows: [],
+      online: 0,
+      state: 'loading',
+    }]
+  }
+
+  if (serverRows.value.length === 0) {
+    return [{
+      key: 'state:empty',
+      name: '服务器',
+      rows: [],
+      online: 0,
+      state: 'empty',
+    }]
+  }
+
+  return groupedServerRows.value
 })
 
 const currentThemeLabel = computed(() => {
@@ -578,9 +643,31 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <!-- 中文说明：首版只保留一个大 Card，内部用高密度网格展示所有服务器。 -->
-      <div class="server-card">
-        <div class="server-grid" role="table" aria-label="服务器列表">
+      <!-- 中文说明：服务器按 Komari 分组拆成多个独立 Card，同组节点共享一个高密度网格。 -->
+      <div
+        v-for="group in displayServerGroups"
+        :key="group.key"
+        class="server-card"
+      >
+        <div class="server-card__header">
+          <div>
+            <p>{{ group.state === 'ready' ? '分组' : '状态' }}</p>
+            <h2>{{ group.name }}</h2>
+          </div>
+          <span class="server-card__meta">
+            <template v-if="group.state === 'ready'">
+              {{ group.online }}/{{ group.rows.length }} 在线
+            </template>
+            <template v-else-if="group.state === 'loading'">
+              加载中
+            </template>
+            <template v-else>
+              无节点
+            </template>
+          </span>
+        </div>
+
+        <div class="server-grid" role="table" :aria-label="`${group.name}服务器列表`">
           <div class="server-grid__head" role="row">
             <div role="columnheader">状态</div>
             <div role="columnheader">名称</div>
@@ -597,17 +684,17 @@ onUnmounted(() => {
             <div role="columnheader">剩余</div>
           </div>
 
-          <div v-if="!hasLoaded" class="server-grid__empty">
+          <div v-if="group.state === 'loading'" class="server-grid__empty">
             正在获取服务器数据...
           </div>
 
-          <div v-else-if="serverRows.length === 0" class="server-grid__empty">
+          <div v-else-if="group.state === 'empty'" class="server-grid__empty">
             暂无可显示的服务器
           </div>
 
           <template v-else>
             <template
-              v-for="row in serverRows"
+              v-for="row in group.rows"
               :key="row.node.uuid"
             >
               <div
@@ -903,6 +990,51 @@ onUnmounted(() => {
   content: '';
   filter: blur(18px);
   opacity: 0.84;
+}
+
+.server-card + .server-card {
+  margin-top: 1rem;
+}
+
+.server-card__header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.95rem 1rem 0.1rem;
+}
+
+.server-card__header p {
+  margin: 0 0 0.18rem;
+  color: rgba(31, 42, 31, 0.48);
+  font-size: 11px;
+  font-weight: 680;
+  letter-spacing: 0.12em;
+}
+
+.server-card__header h2 {
+  margin: 0;
+  color: #263126;
+  font-size: 17px;
+  font-weight: 720;
+  letter-spacing: -0.02em;
+}
+
+.server-card__meta {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42);
+  color: rgba(31, 42, 31, 0.58);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1;
+  padding: 0.44rem 0.68rem;
+  white-space: nowrap;
 }
 
 .server-toolbar {
@@ -1225,7 +1357,7 @@ onUnmounted(() => {
   position: relative;
   z-index: 1;
   overflow-x: auto;
-  padding: 0.85rem 1rem 1rem;
+  padding: 0.65rem 1rem 1rem;
 }
 
 .server-grid__head,
@@ -1634,6 +1766,21 @@ onUnmounted(() => {
   opacity: 0.9;
 }
 
+:global([data-theme='dark']) .server-card__header p {
+  color: rgba(245, 244, 237, 0.44);
+}
+
+:global([data-theme='dark']) .server-card__header h2 {
+  color: #f5f4ed;
+}
+
+:global([data-theme='dark']) .server-card__meta {
+  border-color: rgba(245, 244, 237, 0.1);
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  color: rgba(245, 244, 237, 0.56);
+}
+
 :global([data-theme='dark']) .capsule-toolbar {
   border-color: rgba(245, 244, 237, 0.12);
   background:
@@ -1801,6 +1948,17 @@ onUnmounted(() => {
 @media (max-width: 768px) {
   .server-card {
     border-radius: 16px;
+  }
+
+  .server-card__header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.85rem 0.8rem 0.05rem;
+  }
+
+  .server-card__meta {
+    align-self: flex-start;
   }
 
   .server-toolbar {
