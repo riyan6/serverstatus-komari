@@ -105,3 +105,32 @@ export interface NodeWithStatus {
   status: NodeStatus | null
   online: boolean
 }
+
+/** 延迟监控任务，来自 GET /api/records/ping */
+export interface PingTask {
+  id: number
+  name: string
+  interval: number
+  loss: number
+  type?: string
+  protocol?: string
+}
+
+/** 延迟监控记录，来自 GET /api/records/ping */
+export interface PingRecord {
+  task_id: number
+  time: string
+  value: number
+}
+
+/** 分组卡片状态：加载中 / 空 / 就绪 */
+export type ServerGroupState = 'loading' | 'empty' | 'ready'
+
+/** 按分组聚合后的服务器卡片数据，供 ServerGroupCard 渲染 */
+export interface ServerGroup {
+  key: string
+  name: string
+  rows: NodeWithStatus[]
+  online: number
+  state: ServerGroupState
+}

@@ -6,12 +6,6 @@ const nodes = ref<Node[]>([])
 const statuses = ref<Record<string, NodeStatus>>({})
 const publicInfo = ref<PublicInfo | null>(null)
 const isLoading = ref(true)
-const searchQuery = ref('')
-const selectedGroup = ref<string>(localStorage.getItem('nodeSelectedGroup') || '')
-const viewMode = ref<'grid' | 'table'>(
-  // 中文说明：默认展示恢复为四列网格模式，更符合常规节点概览的浏览习惯。
-  (localStorage.getItem('nodeViewMode') as 'grid' | 'table') || 'table',
-)
 
 type ApiResponse<T> = {
   status: string
@@ -305,14 +299,7 @@ export function useNodes() {
     cleanupWebSocket()
   }
 
-  const groups = computed<string[]>(() => {
-    const set = new Set<string>()
-    for (const node of nodes.value) {
-      if (node.group) set.add(node.group)
-    }
-    return Array.from(set).sort()
-  })
-
+  // 中文说明：按 weight 排序并过滤隐藏节点；statuses 由 WebSocket 持续更新，故该结果随时间实时刷新。
   const nodesWithStatus = computed<NodeWithStatus[]>(() => {
     return nodes.value
       .filter((n) => !n.hidden)
@@ -324,97 +311,11 @@ export function useNodes() {
       .sort((a, b) => b.node.weight - a.node.weight)
   })
 
-  const filteredNodes = computed<NodeWithStatus[]>(() => {
-    let result = nodesWithStatus.value
-
-    if (selectedGroup.value) {
-      result = result.filter((n) => n.node.group === selectedGroup.value)
-    }
-
-    if (searchQuery.value.trim()) {
-      const q = searchQuery.value.trim().toLowerCase()
-      result = result.filter(
-        (n) =>
-          n.node.name.toLowerCase().includes(q) ||
-          n.node.group.toLowerCase().includes(q) ||
-          n.node.region.includes(q) ||
-          n.node.tags.toLowerCase().includes(q),
-      )
-    }
-
-    return result
-  })
-
-  const onlineCount = computed(() => filteredNodes.value.filter((n) => n.online).length)
-  const totalCount = computed(() => filteredNodes.value.length)
-
-  const totalRegions = computed(() => {
-    const regions = new Set<string>()
-    for (const n of nodesWithStatus.value) {
-      if (n.online && n.node.region) regions.add(n.node.region)
-    }
-    return regions.size
-  })
-
-  const totalTraffic = computed(() => {
-    let up = 0
-    let down = 0
-    for (const n of nodesWithStatus.value) {
-      if (n.status && n.online) {
-        up += n.status.net_total_up
-        down += n.status.net_total_down
-      }
-    }
-    return { up, down }
-  })
-
-  const totalSpeed = computed(() => {
-    let up = 0
-    let down = 0
-    for (const n of nodesWithStatus.value) {
-      if (n.status && n.online) {
-        up += n.status.net_out
-        down += n.status.net_in
-      }
-    }
-    return { up, down }
-  })
-
-  function setGroup(group: string) {
-    selectedGroup.value = group
-    localStorage.setItem('nodeSelectedGroup', group)
-  }
-
-  function setViewMode(mode: 'grid' | 'table') {
-    viewMode.value = mode
-    localStorage.setItem('nodeViewMode', mode)
-  }
-
-  function setSearch(query: string) {
-    searchQuery.value = query
-  }
-
   return {
-    nodes,
-    statuses,
-    publicInfo,
-    searchQuery,
-    selectedGroup,
-    viewMode,
-    groups,
     nodesWithStatus,
-    filteredNodes,
-    onlineCount,
-    totalCount,
-    totalRegions,
-    totalTraffic,
-    totalSpeed,
     isLoading,
-    loadMockData,
+    publicInfo,
     initializeData,
     disposeRealtime,
-    setGroup,
-    setViewMode,
-    setSearch,
   }
 }
