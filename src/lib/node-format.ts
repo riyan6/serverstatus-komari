@@ -18,7 +18,7 @@ export function statusLabel(row: NodeWithStatus): string {
 }
 
 export function priceText(row: NodeWithStatus): string {
-  // 中文说明：Komari 中 price 为负数或 0 时按免费展示，避免出现没有意义的账单金额。
+  // 中文说明：未设置价格时后端返回 0，这里按免费展示，更符合当前主题的节点语义。
   if (row.node.price <= 0) return 'FREE'
 
   const cycle = row.node.billing_cycle > 0 ? row.node.billing_cycle : 30
@@ -48,7 +48,10 @@ export function netSpeedText(row: NodeWithStatus): string {
 
 export function trafficText(row: NodeWithStatus): string {
   if (!row.status) return '-'
-  return `${formatBytes(row.status.net_total_up, 1)} | ${formatBytes(row.status.net_total_down, 1)}`
+
+  const uploadText = formatBytes(row.status.net_total_up, 1)
+  const downloadText = formatBytes(row.status.net_total_down, 1)
+  return `${uploadText} | ${downloadText}`
 }
 
 export function cpuPercent(row: NodeWithStatus): number {
@@ -63,25 +66,64 @@ export function diskPercent(row: NodeWithStatus): number {
   return row.status ? formatPercent(row.status.disk, row.status.disk_total || row.node.disk_total) : 0
 }
 
-export function remainText(row: NodeWithStatus): string {
+export function expiryText(row: NodeWithStatus): string {
   const remaining = daysRemaining(row.node.expired_at)
-  if (remaining == null) return '∞'
-  if (remaining < 0) return '已过期'
-  return `${remaining} 天`
+
+  // 中文说明：没有到期时间时按永久展示，避免表格里出现难以理解的空白值。
+  if (remaining == null) return '永久'
+  if (remaining < 0) return '0天'
+  return `${remaining}天`
 }
 
-export function remainingPercent(row: NodeWithStatus): number {
-  const remaining = daysRemaining(row.node.expired_at)
-  if (remaining == null) return 100
-  if (remaining <= 0) return 100
-  return Math.min((remaining / 365) * 100, 100)
+function trafficUsedBytes(row: NodeWithStatus): number | null {
+  if (!row.status || row.node.traffic_limit <= 0) {
+    return null
+  }
+
+  if (row.node.traffic_limit_type === 'max') {
+    return Math.max(row.status.net_total_up, row.status.net_total_down)
+  }
+
+  return row.status.net_total_up + row.status.net_total_down
 }
 
-export function remainingClass(row: NodeWithStatus): string {
-  const remaining = daysRemaining(row.node.expired_at)
-  if (remaining == null) return 'is-normal'
-  if (remaining <= 30) return 'is-danger'
-  if (remaining <= 90) return 'is-warning'
+export function trafficLimitPercent(row: NodeWithStatus): number | null {
+  const usedBytes = trafficUsedBytes(row)
+
+  if (usedBytes == null || row.node.traffic_limit <= 0) {
+    return null
+  }
+
+  return (usedBytes / row.node.traffic_limit) * 100
+}
+
+export function trafficLimitProgressPercent(row: NodeWithStatus): number {
+  const trafficPercent = trafficLimitPercent(row)
+
+  // 中文说明：不限量节点使用满进度展示，避免右侧流量列看起来像“0% 已用”。
+  if (trafficPercent == null) {
+    return 100
+  }
+
+  return trafficPercent
+}
+
+export function trafficLimitText(row: NodeWithStatus): string {
+  const trafficPercent = trafficLimitPercent(row)
+
+  if (trafficPercent == null) {
+    return '∞'
+  }
+
+  return `${trafficPercent.toFixed(0)}%`
+}
+
+export function trafficLimitClass(row: NodeWithStatus): string {
+  const trafficPercent = trafficLimitPercent(row)
+
+  if (trafficPercent == null) return 'is-normal'
+  if (trafficPercent >= 90) return 'is-danger'
+  if (trafficPercent >= 70) return 'is-warning'
   return 'is-normal'
 }
 

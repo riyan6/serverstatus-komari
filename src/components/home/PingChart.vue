@@ -6,12 +6,23 @@ const props = defineProps<{
   uuid: string
 }>()
 
+type PingRangeOption = {
+  label: string
+  hours: number
+}
+
 // 中文说明：模块级缓存：同一节点重展开时直接复用上次结果，避免重复请求。
 type PingCacheItem = {
   tasks: PingTask[]
   records: PingRecord[]
 }
 const pingCache = new Map<string, PingCacheItem>()
+const pingRangeOptions: PingRangeOption[] = [
+  { label: '1小时', hours: 1 },
+  { label: '6小时', hours: 6 },
+  { label: '12小时', hours: 12 },
+  { label: '1天', hours: 24 },
+]
 
 type PingTooltip = {
   left: number
@@ -32,6 +43,7 @@ const pingLoading = ref(false)
 const pingError = ref(false)
 const pingVisibility = ref<Record<number, boolean>>({})
 const pingTooltip = ref<PingTooltip | null>(null)
+const selectedPingRangeHours = ref(24)
 let pingRequestToken = 0
 
 const CHART_W = 1200
@@ -42,7 +54,8 @@ const CHART_PAD_T = 16
 const CHART_PAD_B = 34
 const CHART_INNER_W = CHART_W - CHART_PAD_L - CHART_PAD_R
 const CHART_INNER_H = CHART_H - CHART_PAD_T - CHART_PAD_B
-const PING_COLORS = ['#5c75d6', '#58a66d', '#f3c343', '#e3655b', '#7dbde0', '#98c95f', '#ef8244', '#8a6fd1']
+// 中文说明：延迟图表统一使用新的品牌配色，保证多条线路同时展示时更清晰也更贴合当前主题。
+const PING_COLORS = ['#5B8AF0', '#34C78A', '#F5A623', '#F06B6B', '#A78BFA', '#38BDF8', '#FB7185']
 
 function ensurePingVisibility(tasks: PingTask[]) {
   const nextVisibility = { ...pingVisibility.value }
@@ -67,7 +80,8 @@ function togglePingTask(taskId: number) {
 }
 
 async function loadPingData(uuid: string) {
-  const cached = pingCache.get(uuid)
+  const cacheKey = `${uuid}:${selectedPingRangeHours.value}`
+  const cached = pingCache.get(cacheKey)
   if (cached) {
     pingTasks.value = cached.tasks
     pingRecords.value = cached.records
@@ -82,7 +96,10 @@ async function loadPingData(uuid: string) {
   pingError.value = false
 
   try {
-    const response = await fetch(`/api/records/ping?uuid=${uuid}&hours=24`, { credentials: 'include' })
+    const response = await fetch(
+      `/api/records/ping?uuid=${uuid}&hours=${selectedPingRangeHours.value}`,
+      { credentials: 'include' },
+    )
     if (!response.ok) throw new Error(`Ping records request failed: ${response.status}`)
     const result = await response.json()
     const nextData: PingCacheItem = {
@@ -93,7 +110,7 @@ async function loadPingData(uuid: string) {
     // 中文说明：快速切换节点时只接受最后一次请求结果，避免旧响应覆盖当前展开项。
     if (token !== pingRequestToken) return
 
-    pingCache.set(uuid, nextData)
+    pingCache.set(cacheKey, nextData)
     pingTasks.value = nextData.tasks
     pingRecords.value = nextData.records
     ensurePingVisibility(nextData.tasks)
@@ -111,10 +128,24 @@ async function loadPingData(uuid: string) {
   }
 }
 
-// 中文说明：节点切换时重新加载延迟数据。
-watch(() => props.uuid, uuid => {
-  if (uuid) void loadPingData(uuid)
-}, { immediate: true })
+function setPingRange(hours: number) {
+  if (selectedPingRangeHours.value === hours) {
+    return
+  }
+
+  // 中文说明：切换时间范围后立即刷新当前节点图表，并清理悬浮提示，避免旧范围残留。
+  selectedPingRangeHours.value = hours
+  pingTooltip.value = null
+}
+
+// 中文说明：节点切换或时间范围切换时都重新拉取当前图表数据；相同条件下优先命中缓存。
+watch(
+  [() => props.uuid, selectedPingRangeHours],
+  ([uuid]) => {
+    if (uuid) void loadPingData(uuid)
+  },
+  { immediate: true },
+)
 
 function niceTickStep(maxValue: number): number {
   // 中文说明：根据最大延迟动态选择刻度步长，避免纵向网格过稀导致图表显得臃肿。
@@ -280,6 +311,24 @@ function onPingChartMouseLeave() {
 
 <template>
   <div class="server-detail__chart">
+    <div class="ping-chart-toolbar">
+      <p class="ping-chart-toolbar__title">延迟趋势</p>
+
+      <div class="ping-range-switch" role="group" aria-label="延迟图表时间范围">
+        <button
+          v-for="option in pingRangeOptions"
+          :key="option.hours"
+          type="button"
+          class="ping-range-switch__button"
+          :class="{ 'ping-range-switch__button--active': selectedPingRangeHours === option.hours }"
+          :aria-pressed="selectedPingRangeHours === option.hours"
+          @click="setPingRange(option.hours)"
+        >
+          {{ option.label }}
+        </button>
+      </div>
+    </div>
+
     <div
       v-if="pingLoading"
       class="server-detail__chart-state"
@@ -427,6 +476,59 @@ function onPingChartMouseLeave() {
 </template>
 
 <style scoped>
+.ping-chart-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.7rem;
+}
+
+.ping-chart-toolbar__title {
+  margin: 0;
+  color: var(--koumei-chart-text);
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+
+.ping-range-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid var(--koumei-detail-border);
+  border-radius: 8px;
+  background: var(--koumei-card-chip-bg);
+  padding: 2px;
+}
+
+.ping-range-switch__button {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--koumei-card-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1;
+  padding: 0 0.6rem;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.ping-range-switch__button:hover,
+.ping-range-switch__button--active {
+  /* 中文说明：时间范围切换不再复用表格行的高亮蓝色，避免和展开行状态混淆。 */
+  background: var(--koumei-menu-option-hover);
+  color: var(--koumei-card-title);
+}
+
 .server-detail__chart-state {
   display: flex;
   height: 220px;
@@ -599,6 +701,17 @@ function onPingChartMouseLeave() {
 .ping-tooltip__row strong {
   font-weight: 600;
   white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .ping-chart-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .ping-range-switch {
+    flex-wrap: wrap;
+  }
 }
 
 </style>

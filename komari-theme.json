@@ -5,5 +5,50 @@
   "version": "0.1.0",
   "author": "riyan6",
   "url": "https://github.com/riyan6/serverstatus-komari",
-  "preview": "preview.png"
+  "preview": "preview.png",
+  "configuration": {
+    "type": "managed",
+    "icon": "/themes/Koumei/preview.png",
+    "name": "Koumei 主题配置",
+    "data": [
+      {
+        "name": "首页显示",
+        "type": "title"
+      },
+      {
+        "key": "default_group_view",
+        "name": "默认分组显示",
+        "type": "select",
+        "options": "grouped,all",
+        "default": "grouped",
+        "help": "控制首页顶部“分组 / 全部”的默认展示方式，访客手动切换后会记住自己的选择。"
+      },
+      {
+        "key": "default_appearance",
+        "name": "默认外观模式",
+        "type": "select",
+        "options": "light,dark,auto",
+        "default": "light",
+        "help": "控制首页顶部“外观”的默认值，访客手动切换后会记住自己的选择。"
+      },
+      {
+        "name": "涂鸦配色",
+        "type": "title"
+      },
+      {
+        "key": "pattern_color_light",
+        "name": "浅色模式涂鸦颜色",
+        "type": "string",
+        "default": "#3d3b4d",
+        "help": "用于设置浅色模式下的 --koumei-pattern-color，支持十六进制、rgb、hsl 等 CSS 颜色值。"
+      },
+      {
+        "key": "pattern_color_dark",
+        "name": "深色模式涂鸦颜色",
+        "type": "string",
+        "default": "#fbfbfb",
+        "help": "用于设置深色模式下的 --koumei-pattern-color，支持十六进制、rgb、hsl 等 CSS 颜色值。"
+      }
+    ]
+  }
 }

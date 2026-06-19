@@ -1,11 +1,3 @@
-import type { ClassValue } from "clsx"
-import { clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
-}
-
 export function formatBytes(bytes: number, decimals = 2): string {
   if (bytes === 0) return '0 B'
   const k = 1024
@@ -67,20 +59,6 @@ export function daysRemaining(expiredAt: string | null): number | null {
   const now = new Date()
   const diff = exp.getTime() - now.getTime()
   return Math.ceil(diff / (1000 * 60 * 60 * 24))
-}
-
-export function formatDate(dateStr: string): string {
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' })
-}
-
-export function maskIp(ip: string): string {
-  if (!ip) return '-'
-  const parts = ip.split('.')
-  if (parts.length === 4) {
-    return `${parts[0]}.${parts[1]}.*.*`
-  }
-  return ip
 }
 
 // 中文说明：Komari 的 region 可能是旗帜 emoji，也可能直接是地区短码，这里统一转换成大写短码供资源路径复用。

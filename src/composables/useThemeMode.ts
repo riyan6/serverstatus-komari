@@ -4,9 +4,9 @@ import { usePreferredDark, useStorage } from '@vueuse/core'
 export type ThemeMode = 'light' | 'dark' | 'auto'
 export type ResolvedTheme = 'light' | 'dark'
 
-const THEME_MODE_STORAGE_KEY = 'koumei-theme-mode'
+const THEME_MODE_STORAGE_KEY = 'appearance'
 
-// 中文说明：主题模式持久化到本地，默认先落在 light，和当前现有视觉保持一致。
+// 中文说明：外观模式沿用 Komari 文档建议的 appearance 键，便于主题和宿主系统保持一致约定。
 const themeMode = useStorage<ThemeMode>(THEME_MODE_STORAGE_KEY, 'light')
 
 // 中文说明：auto 模式下跟随系统深浅色偏好。
@@ -46,9 +46,23 @@ export function useThemeMode() {
     themeMode.value = mode
   }
 
+  // 中文说明：只在用户尚未手动选择时才应用动态配置默认值，避免刷新后把用户偏好覆盖掉。
+  function initializeThemeMode(defaultMode: ThemeMode): void {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    const hasStoredValue = window.localStorage.getItem(THEME_MODE_STORAGE_KEY) !== null
+
+    if (!hasStoredValue) {
+      themeMode.value = defaultMode
+    }
+  }
+
   return {
     themeMode,
     resolvedTheme,
     setThemeMode,
+    initializeThemeMode,
   }
 }

@@ -15,12 +15,13 @@ import {
   priceText,
   progressStyle,
   regionText,
-  remainText,
-  remainingClass,
-  remainingPercent,
   resourceClass,
   statusLabel,
   trafficText,
+  trafficLimitClass,
+  trafficLimitProgressPercent,
+  trafficLimitText,
+  expiryText,
   uptimeText,
 } from '@/lib/node-format'
 import ServerDetail from '@/components/home/ServerDetail.vue'
@@ -72,12 +73,13 @@ function onRowClick(row: NodeWithStatus) {
         <div role="columnheader">价格</div>
         <div role="columnheader">在线</div>
         <div role="columnheader">负载</div>
+        <div role="columnheader">到期</div>
         <div role="columnheader">网速 ↑|↓</div>
-        <div role="columnheader">流量 ↑|↓</div>
+        <div role="columnheader">流量 ↑|↓|%</div>
         <div role="columnheader">核心</div>
         <div role="columnheader">内存</div>
         <div role="columnheader">硬盘</div>
-        <div role="columnheader">剩余</div>
+        <div role="columnheader">流量</div>
       </div>
 
       <div v-if="group.state === 'loading'" class="server-grid__empty">
@@ -127,6 +129,7 @@ function onRowClick(row: NodeWithStatus) {
             <div role="cell">{{ priceText(row) }}</div>
             <div role="cell">{{ uptimeText(row) }}</div>
             <div role="cell">{{ loadText(row) }}</div>
+            <div role="cell">{{ expiryText(row) }}</div>
             <div class="server-grid__center" role="cell">{{ netSpeedText(row) }}</div>
             <div class="server-grid__center" role="cell">{{ trafficText(row) }}</div>
 
@@ -152,9 +155,9 @@ function onRowClick(row: NodeWithStatus) {
             </div>
 
             <div role="cell">
-              <div class="resource-bar" :class="remainingClass(row)">
-                <span :style="progressStyle(remainingPercent(row))" />
-                <strong>{{ remainText(row) }}</strong>
+              <div class="resource-bar" :class="trafficLimitClass(row)">
+                <span :style="progressStyle(trafficLimitProgressPercent(row))" />
+                <strong>{{ trafficLimitText(row) }}</strong>
               </div>
             </div>
           </div>
@@ -252,8 +255,8 @@ function onRowClick(row: NodeWithStatus) {
 .server-grid__head,
 .server-grid__row {
   display: grid;
-  grid-template-columns: 4rem minmax(8.5rem, 0.85fr) 5.8rem 4.5rem 5.5rem 4.8rem 4.4rem minmax(10.5rem, 1fr) minmax(10rem, 1fr) 5.8rem 6rem 6rem 6.6rem;
-  min-width: 84rem;
+  grid-template-columns: 4rem minmax(8.5rem, 0.85fr) 5.8rem 4.5rem 5.5rem 4.8rem 4.4rem 5.2rem minmax(10.5rem, 1fr) minmax(13rem, 1.2fr) 5.8rem 6rem 6rem 6.6rem;
+  min-width: 92rem;
   align-items: center;
 }
 
@@ -309,8 +312,8 @@ function onRowClick(row: NodeWithStatus) {
 }
 
 .server-grid__head > div:nth-child(2),
-.server-grid__head > div:nth-child(8),
 .server-grid__head > div:nth-child(9),
+.server-grid__head > div:nth-child(10),
 .server-grid__center {
   text-align: center;
 }
@@ -337,7 +340,7 @@ function onRowClick(row: NodeWithStatus) {
 }
 
 .server-grid__empty {
-  min-width: 84rem;
+  min-width: 92rem;
   border-top: 1px solid var(--koumei-row-border);
   padding: 2.8rem 1rem;
   color: var(--koumei-card-muted);

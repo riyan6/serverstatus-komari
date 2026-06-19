@@ -1,20 +1,56 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useStorage } from '@vueuse/core'
 import { useNodes } from '@/composables/useNodes'
 import { useThemeMode } from '@/composables/useThemeMode'
 import type { NodeWithStatus, ServerGroup } from '@/types/node'
 import { formatBytes } from '@/lib/utils'
+import { resolveManagedThemeSettings } from '@/lib/theme-settings'
 import HomeToolbar from '@/components/home/HomeToolbar.vue'
 import ServerGroupCard from '@/components/home/ServerGroupCard.vue'
 
 // 中文说明：直接消费实时 computed —— WebSocket 每 2s 轮询更新 statuses，分组与统计随之刷新。
-const { nodesWithStatus, initializeData, disposeRealtime } = useNodes()
+const { nodesWithStatus, publicInfo, initializeData, disposeRealtime } = useNodes()
 // useThemeMode 负责主题持久化与 html[data-theme] 同步，这里同时读取解析后的主题用于本组件局部样式。
-const { resolvedTheme } = useThemeMode()
+const { resolvedTheme, initializeThemeMode } = useThemeMode()
 
 const hasLoaded = ref(false)
 const expandedUuid = ref<string | null>(null)
+const GROUP_VIEW_STORAGE_KEY = 'koumei-group-view'
+const groupedSelection = useStorage<'grouped' | 'all' | ''>(GROUP_VIEW_STORAGE_KEY, '')
 const isGroupedView = ref(true)
+
+const managedThemeSettings = computed(() => {
+  return resolveManagedThemeSettings(publicInfo.value?.theme_settings)
+})
+
+const patternStyleVars = computed<Record<string, string>>(() => {
+  return {
+    '--koumei-pattern-color-light': managedThemeSettings.value.patternColorLight,
+    '--koumei-pattern-color-dark': managedThemeSettings.value.patternColorDark,
+  }
+})
+
+watch(
+  managedThemeSettings,
+  (settings) => {
+    initializeThemeMode(settings.defaultAppearance)
+
+    // 中文说明：分组视图同样只在本地没有历史选择时采用服务端默认值，避免管理员配置覆盖访客自己的习惯。
+    if (!groupedSelection.value) {
+      groupedSelection.value = settings.defaultGroupView
+    }
+  },
+  { immediate: true },
+)
+
+watch(
+  groupedSelection,
+  (value) => {
+    isGroupedView.value = value !== 'all'
+  },
+  { immediate: true },
+)
 
 // 中文说明：后端可能返回空分组，界面统一归到默认分组，避免出现空标题 Card。
 function resolveGroupName(row: NodeWithStatus): string {
@@ -109,6 +145,11 @@ function toggleRow(row: NodeWithStatus) {
   expandedUuid.value = expandedUuid.value === uuid ? null : uuid
 }
 
+function handleGroupedChange(value: boolean) {
+  isGroupedView.value = value
+  groupedSelection.value = value ? 'grouped' : 'all'
+}
+
 onMounted(async () => {
   // 中文说明：沿用现有真实接口初始化流程，接口失败时 useNodes 内部会降级到 mock 数据。
   await initializeData()
@@ -123,14 +164,18 @@ onUnmounted(() => {
 
 <template>
   <!-- 中文说明：背景视觉已经确认，后续页面布局都放在内容层上方。 -->
-  <main class="koumei-home min-h-screen" :class="{ 'koumei-home--dark': resolvedTheme === 'dark' }">
+  <main
+    class="koumei-home min-h-screen"
+    :class="{ 'koumei-home--dark': resolvedTheme === 'dark' }"
+    :style="patternStyleVars"
+  >
     <!-- 中文说明：顶部栏固定 48px 高度，统一承载首页统计和高频操作入口。 -->
     <header class="koumei-header">
       <div class="koumei-header__inner">
         <HomeToolbar
           :stats="toolbarStats"
           :grouped="isGroupedView"
-          @update:grouped="isGroupedView = $event"
+          @update:grouped="handleGroupedChange"
         />
       </div>
     </header>
@@ -164,7 +209,9 @@ onUnmounted(() => {
 .koumei-home {
   --koumei-page-bg: #fbfbfb;
   --koumei-page-text: #1f2a1f;
-  --koumei-pattern-color: #3d3b4d;
+  --koumei-pattern-color-light: #3d3b4d;
+  --koumei-pattern-color-dark: #fbfbfb;
+  --koumei-pattern-color: var(--koumei-pattern-color-light);
   --koumei-header-bg: #3d3b4f;
   --koumei-header-control-bg: rgba(255, 255, 255, 0.055);
   --koumei-header-control-bg-hover: rgba(255, 255, 255, 0.105);
@@ -187,12 +234,14 @@ onUnmounted(() => {
   --koumei-card-chip-bg: rgba(255, 255, 255, 0.34);
   --koumei-row-border: rgba(48, 65, 48, 0.08);
   --koumei-row-even: rgba(31, 42, 31, 0.025);
-  --koumei-row-hover: rgba(112, 243, 255, 0.08);
+  /* 中文说明：表格行 hover 与展开态统一改成中性灰高亮，避免出现突兀的浅蓝旧风格。 */
+  --koumei-row-hover: rgba(31, 42, 31, 0.055);
   --koumei-progress-track: rgba(31, 42, 31, 0.08);
   --koumei-progress-text: #263126;
   --koumei-detail-bg: rgba(255, 255, 255, 0.16);
   --koumei-detail-border: rgba(48, 65, 48, 0.08);
-  --koumei-chart-state-bg: rgba(244, 248, 241, 0.72);
+  /* 中文说明：图表占位态改成中性灰底，避免浅色模式出现偏绿色的旧主题残留。 */
+  --koumei-chart-state-bg: rgba(32, 42, 32, 0.05);
   --koumei-chart-muted: #536153;
   --koumei-chart-text: #202a20;
   --koumei-chart-grid: #dce3ec;
@@ -276,7 +325,7 @@ onUnmounted(() => {
 .koumei-home--dark {
   --koumei-page-bg: #171620;
   --koumei-page-text: #f8f7ff;
-  --koumei-pattern-color: #3d3b4d;
+  --koumei-pattern-color: var(--koumei-pattern-color-dark);
   --koumei-header-bg: #3d3b4f;
   --koumei-header-control-bg: rgba(255, 255, 255, 0.055);
   --koumei-header-control-bg-hover: rgba(255, 255, 255, 0.115);
@@ -299,12 +348,14 @@ onUnmounted(() => {
   --koumei-card-chip-bg: rgba(255, 255, 255, 0.08);
   --koumei-row-border: rgba(224, 222, 238, 0.11);
   --koumei-row-even: rgba(255, 255, 255, 0.035);
-  --koumei-row-hover: rgba(112, 243, 255, 0.09);
+  /* 中文说明：深色模式下同样使用偏灰的亮面高亮，而不是带青色倾向的旧变量。 */
+  --koumei-row-hover: rgba(248, 247, 255, 0.08);
   --koumei-progress-track: rgba(255, 255, 255, 0.1);
   --koumei-progress-text: #f8f7ff;
   --koumei-detail-bg: rgba(255, 255, 255, 0.05);
   --koumei-detail-border: rgba(224, 222, 238, 0.1);
-  --koumei-chart-state-bg: rgba(255, 255, 255, 0.07);
+  /* 中文说明：深色模式下同步使用更中性的灰紫底色，和当前卡片体系保持一致。 */
+  --koumei-chart-state-bg: rgba(248, 247, 255, 0.06);
   --koumei-chart-muted: rgba(224, 222, 238, 0.66);
   --koumei-chart-text: #f8f7ff;
   --koumei-chart-grid: rgba(224, 222, 238, 0.14);

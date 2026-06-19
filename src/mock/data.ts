@@ -15,9 +15,10 @@ export const mockPublicInfo: PublicInfo = {
   sitename: 'Koumei',
   theme: 'Koumei',
   theme_settings: {
-    backgroundImageUrlDesktop: 'https://bing.ee123.net/img/4k',
-    backgroundImageUrlMobile: 'https://bing.ee123.net/img/4k',
-    backgroundImageFilterEnabled: false,
+    default_group_view: 'grouped',
+    default_appearance: 'light',
+    pattern_color_light: '#3d3b4d',
+    pattern_color_dark: '#fbfbfb',
   },
 }
 
