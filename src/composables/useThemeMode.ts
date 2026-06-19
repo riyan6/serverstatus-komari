@@ -31,8 +31,9 @@ function applyTheme(theme: ResolvedTheme, mode: ThemeMode): void {
 
   rootElement.dataset.theme = theme
   rootElement.dataset.colorMode = mode
-  rootElement.style.colorScheme = theme
-  rootElement.classList.toggle('dark', theme === 'dark')
+  // 中文说明：深色视觉完全由项目 CSS 控制，避免 Chrome/扩展基于 color-scheme 或 .dark 进行二次暗化。
+  rootElement.style.colorScheme = 'light'
+  rootElement.classList.remove('dark')
 }
 
 watch([themeMode, resolvedTheme], ([mode, theme]) => {

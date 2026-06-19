@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { Check, ChevronDown, Monitor, Moon, Settings, Sun } from 'lucide-vue-next'
+import { Check, ChevronDown, Layers, List, Monitor, Moon, Settings, Sun } from 'lucide-vue-next'
 import { useThemeMode, type ThemeMode } from '@/composables/useThemeMode'
 
 defineProps<{
@@ -10,6 +10,11 @@ defineProps<{
     upload: string
     download: string
   }
+  grouped: boolean
+}>()
+
+const emit = defineEmits<{
+  (event: 'update:grouped', value: boolean): void
 }>()
 
 const { themeMode, setThemeMode } = useThemeMode()
@@ -31,10 +36,15 @@ function selectThemeMode(mode: ThemeMode) {
   setThemeMode(mode)
   themeMenuOpen.value = false
 }
+
+function setGroupedView(value: boolean) {
+  // 中文说明：分组切换只影响 Card 聚合方式，不改变节点排序和实时状态数据。
+  emit('update:grouped', value)
+}
 </script>
 
 <template>
-  <!-- 中文说明：Card 外部胶囊工具栏独立承载摘要和高频操作，避免和表格容器绑定在一起。 -->
+  <!-- 中文说明：顶部栏内的工具区只负责横向排布，外层 header 统一控制高度和底色。 -->
   <div class="server-toolbar" aria-label="首页工具栏">
     <div class="capsule-toolbar capsule-toolbar--stats" aria-label="节点与流量摘要">
       <div class="toolbar-stat">
@@ -56,6 +66,31 @@ function selectThemeMode(mode: ThemeMode) {
     </div>
 
     <div class="capsule-toolbar capsule-toolbar--actions" aria-label="显示与管理操作" @click.stop>
+      <div class="group-mode" role="group" aria-label="服务器分组显示方式">
+        <button
+          type="button"
+          class="group-mode__button"
+          :class="{ 'group-mode__button--active': grouped }"
+          :aria-pressed="grouped"
+          aria-label="按服务器分组显示"
+          @click="setGroupedView(true)"
+        >
+          <Layers aria-hidden="true" />
+          <span>分组</span>
+        </button>
+        <button
+          type="button"
+          class="group-mode__button"
+          :class="{ 'group-mode__button--active': !grouped }"
+          :aria-pressed="!grouped"
+          aria-label="不分组显示全部服务器"
+          @click="setGroupedView(false)"
+        >
+          <List aria-hidden="true" />
+          <span>全部</span>
+        </button>
+      </div>
+
       <div class="theme-menu">
         <button
           type="button"
@@ -112,11 +147,13 @@ function selectThemeMode(mode: ThemeMode) {
   position: relative;
   z-index: 3;
   display: flex;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
   align-items: center;
   justify-content: space-between;
-  gap: 0.85rem;
-  margin-bottom: -0.15rem;
-  padding: 0 0 0.4rem;
+  gap: 0.75rem;
+  padding: 0;
 }
 
 .capsule-toolbar {
@@ -126,64 +163,40 @@ function selectThemeMode(mode: ThemeMode) {
   min-width: 0;
   align-items: center;
   overflow: visible;
-  border: 1px solid rgba(255, 255, 255, 0.42);
-  border-radius: 999px;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.58), rgba(245, 248, 241, 0.28)),
-    rgba(255, 255, 255, 0.22);
-  box-shadow:
-    0 18px 48px rgba(40, 69, 45, 0.18),
-    0 2px 10px rgba(31, 42, 31, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.68),
-    inset 0 -1px 0 rgba(38, 49, 38, 0.04);
-  backdrop-filter: blur(28px) saturate(1.45);
-  -webkit-backdrop-filter: blur(28px) saturate(1.45);
+  border: 1px solid var(--koumei-header-control-border);
+  border-radius: 8px;
+  background: var(--koumei-header-control-bg);
+  box-shadow: none;
   transition:
     border-color 180ms ease,
-    box-shadow 220ms ease,
-    transform 220ms var(--ease-out-power2);
+    background-color 180ms ease;
 }
 
 .capsule-toolbar::before {
-  position: absolute;
-  inset: -10px;
-  z-index: -1;
-  border-radius: inherit;
-  background:
-    radial-gradient(circle at 22% 50%, rgba(255, 255, 255, 0.46), transparent 34%),
-    radial-gradient(circle at 78% 48%, rgba(169, 216, 130, 0.28), transparent 38%);
-  content: '';
-  filter: blur(18px);
-  opacity: 0.55;
-  transform: scale(0.96);
-  transition:
-    opacity 260ms ease,
-    transform 260ms var(--ease-out-power2);
+  display: none;
 }
 
 .capsule-toolbar:hover {
-  border-color: rgba(255, 255, 255, 0.62);
-  box-shadow:
-    0 22px 58px rgba(40, 69, 45, 0.22),
-    0 2px 14px rgba(31, 42, 31, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.78),
-    inset 0 -1px 0 rgba(38, 49, 38, 0.05);
-  transform: translateY(-1px);
-}
-
-.capsule-toolbar:hover::before {
-  opacity: 0.92;
-  transform: scale(1.02);
+  border-color: var(--koumei-header-control-border);
+  background: var(--koumei-header-control-bg-hover);
 }
 
 .capsule-toolbar--stats {
+  flex: 0 1 auto;
   gap: 0.02rem;
-  padding: 0.4rem 0.48rem;
+  overflow-x: auto;
+  padding: 0.14rem 0.36rem;
+  scrollbar-width: none;
+}
+
+.capsule-toolbar--stats::-webkit-scrollbar {
+  display: none;
 }
 
 .capsule-toolbar--actions {
+  flex: 0 0 auto;
   gap: 0.34rem;
-  padding: 0.34rem;
+  padding: 0.2rem;
 }
 
 .toolbar-stat {
@@ -191,18 +204,17 @@ function selectThemeMode(mode: ThemeMode) {
   display: inline-flex;
   align-items: center;
   gap: 0.36rem;
-  padding: 0.33rem 0.78rem;
-  color: rgba(31, 42, 31, 0.56);
+  padding: 0.25rem 0.68rem;
+  color: var(--koumei-header-muted);
   font-size: 11px;
-  letter-spacing: 0.02em;
   white-space: nowrap;
 }
 
 .toolbar-stat::before {
   position: absolute;
   inset: 0.18rem 0;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.055);
   content: '';
   opacity: 0;
   transition:
@@ -222,17 +234,16 @@ function selectThemeMode(mode: ThemeMode) {
   left: 0;
   width: 1px;
   height: 42%;
-  background: linear-gradient(180deg, transparent, rgba(38, 49, 38, 0.12), transparent);
+  background: rgba(255, 255, 255, 0.11);
   content: '';
   transform: translateY(-50%);
 }
 
 .toolbar-stat strong {
   position: relative;
-  color: #263126;
+  color: #fff;
   font-size: 13px;
   font-weight: 680;
-  letter-spacing: -0.01em;
 }
 
 .toolbar-stat span {
@@ -243,21 +254,63 @@ function selectThemeMode(mode: ThemeMode) {
   position: relative;
 }
 
+.group-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid var(--koumei-header-control-border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  padding: 2px;
+}
+
+.group-mode__button {
+  display: inline-flex;
+  min-height: 26px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.34rem;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--koumei-header-muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 680;
+  line-height: 1;
+  padding: 0 0.52rem;
+  white-space: nowrap;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.group-mode__button:hover,
+.group-mode__button--active {
+  background: var(--koumei-header-control-bg-hover);
+  color: var(--koumei-header-text);
+}
+
+.group-mode__button svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 1.9;
+}
+
 .glass-action {
   position: relative;
   isolation: isolate;
   display: inline-flex;
-  min-height: 36px;
+  min-height: 30px;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   border: 0;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.2);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.52),
-    inset 0 -1px 0 rgba(38, 49, 38, 0.06);
-  color: rgba(31, 42, 31, 0.76);
+  border-radius: 8px;
+  background: var(--koumei-header-control-bg);
+  box-shadow: none;
+  color: var(--koumei-header-muted);
   cursor: pointer;
   font-family: inherit;
   font-size: 12px;
@@ -267,41 +320,18 @@ function selectThemeMode(mode: ThemeMode) {
   transition:
     background-color 180ms ease,
     color 160ms ease,
-    box-shadow 220ms ease,
-    transform 220ms var(--ease-out-power2);
+    box-shadow 220ms ease;
 }
 
 .glass-action::before {
-  position: absolute;
-  inset: -35%;
-  z-index: -1;
-  background:
-    radial-gradient(circle at 50% 115%, rgba(255, 255, 255, 0.74), transparent 34%),
-    radial-gradient(circle at 50% 30%, rgba(169, 216, 130, 0.28), transparent 46%);
-  content: '';
-  filter: blur(12px);
-  opacity: 0;
-  transform: scale(0.72);
-  transition:
-    opacity 260ms ease,
-    transform 280ms var(--ease-out-power2);
+  display: none;
 }
 
 .glass-action:hover,
 .glass-action[aria-expanded='true'] {
-  background: rgba(255, 255, 255, 0.34);
-  box-shadow:
-    0 8px 22px rgba(40, 69, 45, 0.13),
-    inset 0 1px 0 rgba(255, 255, 255, 0.68),
-    inset 0 -1px 0 rgba(38, 49, 38, 0.05);
-  color: #1f2a1f;
-  transform: translateY(-1px) scale(1.012);
-}
-
-.glass-action:hover::before,
-.glass-action[aria-expanded='true']::before {
-  opacity: 1;
-  transform: scale(1);
+  background: var(--koumei-header-control-bg-hover);
+  box-shadow: none;
+  color: var(--koumei-header-text);
 }
 
 .glass-action__icon,
@@ -313,14 +343,14 @@ function selectThemeMode(mode: ThemeMode) {
 
 .glass-action--theme {
   gap: 0.42rem;
-  padding: 0 0.68rem 0 0.62rem;
+  padding: 0 0.58rem 0 0.54rem;
 }
 
 .glass-action--theme small {
   margin-left: -0.18rem;
-  border-left: 1px solid rgba(38, 49, 38, 0.1);
+  border-left: 1px solid var(--koumei-header-control-border);
   padding-left: 0.42rem;
-  color: rgba(31, 42, 31, 0.48);
+  color: var(--koumei-header-muted);
   font-size: 11px;
   font-weight: 620;
 }
@@ -328,7 +358,7 @@ function selectThemeMode(mode: ThemeMode) {
 .theme-trigger__chevron {
   width: 13px;
   height: 13px;
-  color: rgba(31, 42, 31, 0.42);
+  color: var(--koumei-header-muted);
   transition: transform 220ms var(--ease-out-power2);
 }
 
@@ -337,7 +367,7 @@ function selectThemeMode(mode: ThemeMode) {
 }
 
 .glass-action--icon {
-  width: 36px;
+  width: 30px;
   padding: 0;
 }
 
@@ -352,18 +382,15 @@ function selectThemeMode(mode: ThemeMode) {
   z-index: 30;
   min-width: 10rem;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.44);
-  border-radius: 1.2rem;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.64), rgba(245, 248, 241, 0.34)),
-    rgba(255, 255, 255, 0.22);
+  border: 1px solid var(--koumei-menu-border);
+  border-radius: 8px;
+  background: var(--koumei-menu-bg);
   box-shadow:
-    0 24px 58px rgba(40, 69, 45, 0.2),
-    0 4px 16px rgba(31, 42, 31, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.68);
+    0 16px 42px rgba(0, 0, 0, 0.22),
+    0 2px 10px rgba(0, 0, 0, 0.12);
   padding: 0.42rem;
-  backdrop-filter: blur(30px) saturate(1.5);
-  -webkit-backdrop-filter: blur(30px) saturate(1.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .theme-menu__option {
@@ -374,9 +401,9 @@ function selectThemeMode(mode: ThemeMode) {
   align-items: center;
   gap: 0.55rem;
   border: 0;
-  border-radius: 0.86rem;
+  border-radius: 6px;
   background: transparent;
-  color: rgba(31, 42, 31, 0.7);
+  color: var(--koumei-menu-text);
   cursor: pointer;
   font-family: inherit;
   font-size: 12px;
@@ -391,8 +418,8 @@ function selectThemeMode(mode: ThemeMode) {
 
 .theme-menu__option:hover,
 .theme-menu__option--active {
-  background: rgba(255, 255, 255, 0.38);
-  color: #1f2a1f;
+  background: var(--koumei-menu-option-hover);
+  color: var(--koumei-menu-text-active);
 }
 
 .theme-menu__option:hover {
@@ -406,7 +433,7 @@ function selectThemeMode(mode: ThemeMode) {
 }
 
 .theme-menu__check {
-  color: #5e944f;
+  color: var(--koumei-menu-check);
 }
 
 .theme-menu-float-enter-active,
@@ -426,144 +453,36 @@ function selectThemeMode(mode: ThemeMode) {
 
 @media (max-width: 768px) {
   .server-toolbar {
-    align-items: stretch;
-    flex-direction: column;
-    padding: 0 0 0.75rem;
+    align-items: center;
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 0;
+    scrollbar-width: none;
   }
 
-  .capsule-toolbar {
-    width: 100%;
-    justify-content: center;
+  .server-toolbar::-webkit-scrollbar {
+    display: none;
   }
 
   .capsule-toolbar--stats {
-    justify-content: space-between;
+    max-width: none;
+    justify-content: flex-start;
   }
 
   .toolbar-stat {
-    flex: 1;
     justify-content: center;
-    padding-inline: 0.5rem;
+    padding-inline: 0.58rem;
   }
 
   .capsule-toolbar--actions {
-    justify-content: space-between;
-  }
-
-  .theme-menu {
-    flex: 1;
-  }
-
-  .glass-action--theme {
-    width: 100%;
+    justify-content: flex-start;
   }
 
   .theme-menu__popover {
-    right: auto;
-    left: 0;
+    right: 0;
+    left: auto;
     width: min(15rem, calc(100vw - 1.6rem));
   }
 }
 
-:global([data-theme='dark']) .capsule-toolbar {
-  border-color: rgba(245, 244, 237, 0.12);
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.11), rgba(245, 244, 237, 0.045)),
-    rgba(20, 20, 19, 0.44);
-  box-shadow:
-    0 18px 52px rgba(0, 0, 0, 0.32),
-    0 2px 12px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.28);
-}
-
-:global([data-theme='dark']) .capsule-toolbar::before {
-  background:
-    radial-gradient(circle at 22% 50%, rgba(255, 255, 255, 0.13), transparent 34%),
-    radial-gradient(circle at 78% 48%, rgba(217, 119, 87, 0.18), transparent 40%);
-  opacity: 0.72;
-}
-
-:global([data-theme='dark']) .capsule-toolbar:hover {
-  border-color: rgba(245, 244, 237, 0.18);
-  box-shadow:
-    0 24px 64px rgba(0, 0, 0, 0.4),
-    0 2px 14px rgba(0, 0, 0, 0.24),
-    inset 0 1px 0 rgba(255, 255, 255, 0.16),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
-}
-
-:global([data-theme='dark']) .toolbar-stat {
-  color: rgba(245, 244, 237, 0.58);
-}
-
-:global([data-theme='dark']) .toolbar-stat::before {
-  background: rgba(255, 255, 255, 0.06);
-}
-
-:global([data-theme='dark']) .toolbar-stat + .toolbar-stat::after {
-  background: linear-gradient(180deg, transparent, rgba(245, 244, 237, 0.1), transparent);
-}
-
-:global([data-theme='dark']) .toolbar-stat strong {
-  color: #f5f4ed;
-}
-
-:global([data-theme='dark']) .glass-action {
-  background: rgba(255, 255, 255, 0.06);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
-  color: rgba(245, 244, 237, 0.72);
-}
-
-:global([data-theme='dark']) .glass-action::before {
-  background:
-    radial-gradient(circle at 50% 115%, rgba(255, 255, 255, 0.16), transparent 34%),
-    radial-gradient(circle at 50% 30%, rgba(217, 119, 87, 0.16), transparent 46%);
-}
-
-:global([data-theme='dark']) .glass-action:hover,
-:global([data-theme='dark']) .glass-action[aria-expanded='true'] {
-  background: rgba(255, 255, 255, 0.11);
-  box-shadow:
-    0 10px 26px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.16),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.28);
-  color: #f5f4ed;
-}
-
-:global([data-theme='dark']) .glass-action--theme small {
-  border-left-color: rgba(245, 244, 237, 0.12);
-  color: rgba(245, 244, 237, 0.48);
-}
-
-:global([data-theme='dark']) .theme-trigger__chevron {
-  color: rgba(245, 244, 237, 0.42);
-}
-
-:global([data-theme='dark']) .theme-menu__popover {
-  border-color: rgba(245, 244, 237, 0.13);
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(245, 244, 237, 0.055)),
-    rgba(20, 20, 19, 0.72);
-  box-shadow:
-    0 24px 64px rgba(0, 0, 0, 0.42),
-    0 4px 18px rgba(0, 0, 0, 0.26),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
-}
-
-:global([data-theme='dark']) .theme-menu__option {
-  color: rgba(245, 244, 237, 0.68);
-}
-
-:global([data-theme='dark']) .theme-menu__option:hover,
-:global([data-theme='dark']) .theme-menu__option--active {
-  background: rgba(255, 255, 255, 0.09);
-  color: #f5f4ed;
-}
-
-:global([data-theme='dark']) .theme-menu__check {
-  color: #d97757;
-}
 </style>

@@ -3,14 +3,17 @@
 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 viewBox="0 0 1440 2960" style="enable-background:new 0 0 1440 2960;" xml:space="preserve">
 <style type="text/css">
-	.st0{fill:none;stroke:#000000;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
-	.st1{fill:none;stroke:#000000;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10.0001;}
-	.st2{fill:none;stroke:#000000;stroke-width:2.9998;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:9.9995;}
-	.st3{stroke:#000000;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
-	.st4{fill:none;stroke:#000000;stroke-width:2.9999;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:9.9998;}
-	.st5{fill:none;stroke:#000000;stroke-width:3.0001;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10.0002;}
+	.st0{fill:none;stroke:#70f3ff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st1{fill:none;stroke:#70f3ff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10.0001;}
+	.st2{fill:none;stroke:#70f3ff;stroke-width:2.9998;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:9.9995;}
+	.st3{fill:#70f3ff;stroke:#70f3ff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st4{fill:none;stroke:#70f3ff;stroke-width:2.9999;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:9.9998;}
+	.st5{fill:none;stroke:#70f3ff;stroke-width:3.0001;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10.0002;}
 	.st6{fill:none;}
-	.st7{fill:none;stroke:#000000;stroke-width:2.9999;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:9.9997;}
+	.st7{fill:none;stroke:#70f3ff;stroke-width:2.9999;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:9.9997;}
+	/* 中文说明：兜底处理导出 SVG 中未绑定 class 的线稿，避免浅色模式出现默认黑色/灰色涂鸦。 */
+	path:not([class]), circle:not([class]), ellipse:not([class]), polygon:not([class]){fill:#70f3ff;}
+	line:not([class]){stroke:#70f3ff;}
 </style>
 <g>
 	<path class="st0" d="M863,1592.2c0,0-2.6-5.6-11.9-5.8c-9.3-0.2-18.9,4.9-22.4,19.6s4.2,30.5,4.2,40.5c-12.3,4.2-22.1,21-15.6,26.1

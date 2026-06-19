@@ -432,6 +432,13 @@
     min-height: 100vh;
   }
 
+  [data-theme='dark'],
+  [data-theme='dark'] body {
+    /* 中文说明：深色模式的根背景和文字显式落地，避免浏览器缓存或原生暗色策略造成黑底黑字。 */
+    background-color: #171620;
+    color: #f8f7ff;
+  }
+
   ::selection {
     background: oklch(0.7 0.15 250);
     color: white;

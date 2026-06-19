@@ -27,11 +27,10 @@ defineProps<{
 <style scoped>
 .server-detail {
   min-width: 84rem;
-  border-top: 1px solid rgba(48, 65, 48, 0.06);
-  border-bottom: 1px solid rgba(48, 65, 48, 0.08);
-  background:
-    radial-gradient(circle at 24% 0%, rgba(255, 255, 255, 0.26), transparent 32%),
-    rgba(255, 255, 255, 0.16);
+  border-top: 1px solid var(--koumei-detail-border);
+  border-bottom: 1px solid var(--koumei-detail-border);
+  /* 中文说明：详情面板跟随首页主题变量，避免 scoped/global dark 选择器泄漏到根节点。 */
+  background: var(--koumei-detail-bg);
   padding: 14px 18px 18px;
 }
 
@@ -39,7 +38,7 @@ defineProps<{
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 4px 24px;
-  color: #202a20;
+  color: var(--koumei-chart-text);
   font-size: 14px;
   line-height: 1.55;
 }
@@ -68,13 +67,4 @@ defineProps<{
   }
 }
 
-:global([data-theme='dark']) .server-detail {
-  border-color: rgba(245, 244, 237, 0.09);
-  color: rgba(245, 244, 237, 0.58);
-  background: rgba(31, 30, 29, 0.72);
-}
-
-:global([data-theme='dark']) .server-detail__info {
-  color: #f0eee7;
-}
 </style>

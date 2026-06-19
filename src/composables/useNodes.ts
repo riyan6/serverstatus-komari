@@ -30,7 +30,12 @@ let socket: WebSocket | null = null
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null
 let heartbeatTimer: ReturnType<typeof setInterval> | null = null
 let wsPollTimer: ReturnType<typeof setInterval> | null = null
+let httpStatusPollTimer: ReturnType<typeof setInterval> | null = null
+let isHttpStatusPolling = false
 let isExplicitlyClosed = false
+let wsReconnectAttempts = 0
+
+const MAX_WS_RECONNECT_ATTEMPTS = 1
 
 export function useNodes() {
   function loadMockData() {
@@ -66,7 +71,7 @@ export function useNodes() {
   }
 
   // 中文说明：RPC2 接口统一封装 JSON-RPC 请求，通过固定 ID 进行首屏获取。
-  async function fetchRpcWithId<T>(id: number, method: string, params: Record<string, unknown> = {}): Promise<T> {
+  async function fetchRpcWithId<T>(id: number | string, method: string, params: Record<string, unknown> = {}): Promise<T> {
     const response = await fetch('/api/rpc2', {
       method: 'POST',
       headers: {
@@ -111,6 +116,10 @@ export function useNodes() {
       clearInterval(wsPollTimer)
       wsPollTimer = null
     }
+    if (httpStatusPollTimer) {
+      clearInterval(httpStatusPollTimer)
+      httpStatusPollTimer = null
+    }
   }
 
   function cleanupWebSocket() {
@@ -141,8 +150,15 @@ export function useNodes() {
 
   function reconnect() {
     if (reconnectTimer) clearTimeout(reconnectTimer)
+
+    if (wsReconnectAttempts >= MAX_WS_RECONNECT_ATTEMPTS) {
+      // 中文说明：部分部署环境不支持 WebSocket，失败后切到 HTTP 轮询，避免控制台持续刷错影响页面使用。
+      startHttpStatusPolling()
+      return
+    }
+
+    wsReconnectAttempts += 1
     reconnectTimer = setTimeout(() => {
-      console.log('[WebSocket] Reconnecting...')
       connectWebSocket()
     }, 3000)
   }
@@ -197,6 +213,28 @@ export function useNodes() {
     }, 2000)
   }
 
+  function startHttpStatusPolling() {
+    if (httpStatusPollTimer) clearInterval(httpStatusPollTimer)
+    isHttpStatusPolling = false
+
+    httpStatusPollTimer = setInterval(async () => {
+      if (isHttpStatusPolling) return
+
+      isHttpStatusPolling = true
+      try {
+        const latestStatuses = await fetchRpcWithId<Record<string, NodeStatus>>(
+          `http-poll-${Date.now()}`,
+          'common:getNodesLatestStatus',
+        )
+        applyLatestStatuses(latestStatuses)
+      } catch (error) {
+        console.warn('[Realtime] HTTP status polling failed:', error)
+      } finally {
+        isHttpStatusPolling = false
+      }
+    }, 3000)
+  }
+
   function connectWebSocket() {
     cleanupWebSocketTimers()
     isExplicitlyClosed = false
@@ -218,7 +256,7 @@ export function useNodes() {
     socket = ws
 
     ws.onopen = () => {
-      console.log('[WebSocket] Connected')
+      wsReconnectAttempts = 0
       startHeartbeat()
       startWsPolling()
     }
@@ -241,16 +279,15 @@ export function useNodes() {
       }
     }
 
-    ws.onclose = (event) => {
-      console.log('[WebSocket] Closed:', event.code, event.reason)
+    ws.onclose = () => {
       cleanupWebSocketTimers()
       if (!isExplicitlyClosed) {
         reconnect()
       }
     }
 
-    ws.onerror = (error) => {
-      console.error('[WebSocket] Error:', error)
+    ws.onerror = () => {
+      // 中文说明：浏览器会自行输出连接失败详情，这里不重复 error 日志，避免失败兜底时刷屏。
     }
   }
 
@@ -290,7 +327,8 @@ export function useNodes() {
       return
     }
 
-    // 中文说明：数据初次获取完成后，建立 WebSocket 获取实时状态更新。
+    // 中文说明：数据初次获取完成后，优先尝试 WebSocket；若部署不支持，则自动降级到 HTTP 轮询。
+    wsReconnectAttempts = 0
     connectWebSocket()
     isLoading.value = false
   }

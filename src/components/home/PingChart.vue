@@ -433,8 +433,8 @@ function onPingChartMouseLeave() {
   align-items: center;
   justify-content: center;
   border-radius: 6px;
-  background: rgba(244, 248, 241, 0.72);
-  color: #536153;
+  background: var(--koumei-chart-state-bg);
+  color: var(--koumei-chart-muted);
   font-size: 14px;
 }
 
@@ -444,7 +444,7 @@ function onPingChartMouseLeave() {
   justify-content: center;
   gap: 8px 18px;
   margin-bottom: 8px;
-  color: #243024;
+  color: var(--koumei-chart-text);
   font-size: 14px;
 }
 
@@ -476,7 +476,7 @@ function onPingChartMouseLeave() {
 .ping-legend__item i {
   width: 10px;
   height: 10px;
-  border-radius: 999px;
+  border-radius: 8px;
 }
 
 .ping-chart-wrap {
@@ -492,7 +492,7 @@ function onPingChartMouseLeave() {
 }
 
 .ping-chart__grid line {
-  stroke: #dce3ec;
+  stroke: var(--koumei-chart-grid);
   stroke-width: 1;
 }
 
@@ -500,7 +500,7 @@ function onPingChartMouseLeave() {
 .ping-chart__x-labels {
   position: absolute;
   inset: 0;
-  color: #202a20;
+  color: var(--koumei-chart-text);
   font-size: 13px;
   pointer-events: none;
   user-select: none;
@@ -537,7 +537,7 @@ function onPingChartMouseLeave() {
 }
 
 .ping-chart__crosshair {
-  stroke: #7b897b;
+  stroke: var(--koumei-chart-crosshair);
   stroke-dasharray: 4 4;
   stroke-width: 1;
 }
@@ -553,11 +553,11 @@ function onPingChartMouseLeave() {
   z-index: 5;
   min-width: 190px;
   max-width: 280px;
-  border: 1px solid rgba(38, 49, 38, 0.16);
+  border: 1px solid var(--koumei-tooltip-border);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 12px 28px rgba(31, 42, 31, 0.16);
-  color: #263126;
+  background: var(--koumei-tooltip-bg);
+  box-shadow: var(--koumei-tooltip-shadow);
+  color: var(--koumei-chart-text);
   pointer-events: none;
   transform: translateX(12px);
 }
@@ -568,9 +568,9 @@ function onPingChartMouseLeave() {
 
 .ping-tooltip p {
   margin: 0;
-  border-bottom: 1px solid rgba(38, 49, 38, 0.1);
+  border-bottom: 1px solid var(--koumei-tooltip-border);
   padding: 7px 10px 6px;
-  color: #5f6d5f;
+  color: var(--koumei-chart-muted);
   font-size: 12px;
 }
 
@@ -586,7 +586,7 @@ function onPingChartMouseLeave() {
 .ping-tooltip__row span {
   width: 8px;
   height: 8px;
-  border-radius: 999px;
+  border-radius: 8px;
 }
 
 .ping-tooltip__row b {
@@ -601,34 +601,4 @@ function onPingChartMouseLeave() {
   white-space: nowrap;
 }
 
-:global([data-theme='dark']) .server-detail__chart-state {
-  background: rgba(38, 38, 36, 0.86);
-  color: rgba(245, 244, 237, 0.62);
-}
-
-:global([data-theme='dark']) .ping-legend,
-:global([data-theme='dark']) .ping-chart__y-labels,
-:global([data-theme='dark']) .ping-chart__x-labels {
-  color: #f0eee7;
-}
-
-:global([data-theme='dark']) .ping-chart__grid line {
-  stroke: rgba(245, 244, 237, 0.1);
-}
-
-:global([data-theme='dark']) .ping-chart__crosshair {
-  stroke: rgba(245, 244, 237, 0.48);
-}
-
-:global([data-theme='dark']) .ping-tooltip {
-  border-color: rgba(245, 244, 237, 0.12);
-  background: rgba(31, 30, 29, 0.96);
-  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.36);
-  color: #f5f4ed;
-}
-
-:global([data-theme='dark']) .ping-tooltip p {
-  border-bottom-color: rgba(245, 244, 237, 0.1);
-  color: rgba(245, 244, 237, 0.62);
-}
 </style>

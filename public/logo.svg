@@ -1,16 +1,27 @@
-<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Warm radial flower logo">
-  <title>Warm Radial Flower Logo</title>
-  <g fill="#d97757">
-    <ellipse cx="256" cy="105" rx="39" ry="86" transform="rotate(0 256 105)"/>
-    <ellipse cx="256" cy="407" rx="39" ry="86" transform="rotate(180 256 407)"/>
-    <ellipse cx="407" cy="256" rx="39" ry="86" transform="rotate(90 407 256)"/>
-    <ellipse cx="105" cy="256" rx="39" ry="86" transform="rotate(-90 105 256)"/>
-
-    <ellipse cx="363" cy="149" rx="37" ry="82" transform="rotate(45 363 149)"/>
-    <ellipse cx="149" cy="363" rx="37" ry="82" transform="rotate(225 149 363)"/>
-    <ellipse cx="363" cy="363" rx="37" ry="82" transform="rotate(135 363 363)"/>
-    <ellipse cx="149" cy="149" rx="37" ry="82" transform="rotate(-45 149 149)"/>
-
-    <circle cx="256" cy="256" r="58"/>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Koumei Monitor Logo</title>
+  <desc id="desc">A dark violet Koumei monitor badge with cyan doodle energy and a compact K mark.</desc>
+  <!-- 中文说明：主色跟随当前主题顶栏，青色呼应页面涂鸦纹理。 -->
+  <rect width="512" height="512" rx="112" fill="#3d3b4f"/>
+  <path d="M87 111c27-21 64-29 104-20M420 390c-31 25-72 32-114 17M95 412c19 10 39 14 62 10M392 91c-17-6-37-7-57-2" stroke="#70f3ff" stroke-width="9" stroke-linecap="round" opacity=".42"/>
+  <circle cx="110" cy="184" r="8" fill="#70f3ff" opacity=".45"/>
+  <circle cx="400" cy="168" r="6" fill="#70f3ff" opacity=".55"/>
+  <circle cx="382" cy="338" r="10" fill="#8abd6f" opacity=".55"/>
+  <circle cx="141" cy="349" r="7" fill="#8abd6f" opacity=".5"/>
+  <g filter="url(#softShadow)">
+    <rect x="96" y="92" width="320" height="328" rx="86" fill="#fbfbfb"/>
+    <rect x="96" y="92" width="320" height="328" rx="86" stroke="#70f3ff" stroke-width="12"/>
   </g>
+  <!-- 中文说明：中间的 K 是项目名 Koumei 的识别锚点，几何切角保持潮玩感但避免依赖具体 IP 造型。 -->
+  <path d="M172 159c0-11 9-20 20-20h19c11 0 20 9 20 20v194c0 11-9 20-20 20h-19c-11 0-20-9-20-20V159Z" fill="#3d3b4f"/>
+  <path d="M239 249c-8-8-8-21 0-29l69-70c8-8 21-8 29 0l13 13c8 8 8 21 0 29l-56 56 61 71c7 8 6 21-2 28l-16 14c-8 7-21 6-28-2l-70-82c-7-8-7-20 0-28Z" fill="#3d3b4f"/>
+  <path d="M266 260l78-79" stroke="#70f3ff" stroke-width="18" stroke-linecap="round" opacity=".95"/>
+  <path d="M268 264l82 91" stroke="#70f3ff" stroke-width="18" stroke-linecap="round" opacity=".95"/>
+  <path d="M274 181l26 26M300 181l-26 26M313 304l26 26M339 304l-26 26" stroke="#fbfbfb" stroke-width="10" stroke-linecap="round"/>
+  <path d="M155 91c-26 30-36 69-27 104M413 253c29 17 42 45 36 83" stroke="#70f3ff" stroke-width="7" stroke-linecap="round" opacity=".22"/>
+  <defs>
+    <filter id="softShadow" x="56" y="58" width="400" height="408" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#171620" flood-opacity=".32"/>
+    </filter>
+  </defs>
 </svg>

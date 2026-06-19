@@ -174,16 +174,10 @@ function onRowClick(row: NodeWithStatus) {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.38);
-  border-radius: 18px;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.54), rgba(245, 248, 241, 0.3)),
-    rgba(255, 255, 255, 0.2);
-  box-shadow:
-    0 24px 70px rgba(40, 69, 45, 0.17),
-    0 2px 14px rgba(31, 42, 31, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.62),
-    inset 0 -1px 0 rgba(38, 49, 38, 0.04);
+  border: 1px solid var(--koumei-card-border);
+  border-radius: 8px;
+  background: var(--koumei-card-bg);
+  box-shadow: var(--koumei-card-shadow);
   /* 中文说明：Card 与工具栏使用同一套玻璃材质，让表格像浮在背景上而不是压在白底里。 */
   backdrop-filter: blur(26px) saturate(1.38);
   -webkit-backdrop-filter: blur(26px) saturate(1.38);
@@ -194,10 +188,10 @@ function onRowClick(row: NodeWithStatus) {
   inset: -12%;
   z-index: 0;
   pointer-events: none;
+  /* 中文说明：移除右侧绿色氛围块，Card 背景只保留轻微白色提亮。 */
   background:
-    radial-gradient(circle at 18% 6%, rgba(255, 255, 255, 0.54), transparent 24%),
-    radial-gradient(circle at 84% 16%, rgba(169, 216, 130, 0.22), transparent 30%),
-    radial-gradient(circle at 48% 102%, rgba(255, 255, 255, 0.26), transparent 34%);
+    radial-gradient(circle at 18% 6%, var(--koumei-card-highlight), transparent 24%),
+    radial-gradient(circle at 48% 102%, var(--koumei-card-highlight), transparent 34%);
   content: '';
   filter: blur(18px);
   opacity: 0.84;
@@ -219,7 +213,7 @@ function onRowClick(row: NodeWithStatus) {
 
 .server-card__header p {
   margin: 0 0 0.18rem;
-  color: rgba(31, 42, 31, 0.48);
+  color: var(--koumei-card-muted);
   font-size: 11px;
   font-weight: 680;
   letter-spacing: 0.12em;
@@ -227,7 +221,7 @@ function onRowClick(row: NodeWithStatus) {
 
 .server-card__header h2 {
   margin: 0;
-  color: #263126;
+  color: var(--koumei-card-title);
   font-size: 17px;
   font-weight: 720;
   letter-spacing: -0.02em;
@@ -236,11 +230,11 @@ function onRowClick(row: NodeWithStatus) {
 .server-card__meta {
   display: inline-flex;
   align-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.34);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.16);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42);
-  color: rgba(31, 42, 31, 0.58);
+  border: 1px solid var(--koumei-card-border);
+  border-radius: 8px;
+  background: var(--koumei-card-chip-bg);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  color: var(--koumei-card-muted);
   font-size: 12px;
   font-weight: 650;
   line-height: 1;
@@ -265,7 +259,7 @@ function onRowClick(row: NodeWithStatus) {
 
 .server-grid__head {
   min-height: 30px;
-  color: #263126;
+  color: var(--koumei-card-title);
   font-size: 14px;
   font-weight: 600;
 }
@@ -278,8 +272,8 @@ function onRowClick(row: NodeWithStatus) {
 
 .server-grid__row {
   min-height: 30px;
-  border-top: 1px solid rgba(48, 65, 48, 0.055);
-  color: #2b352b;
+  border-top: 1px solid var(--koumei-row-border);
+  color: var(--koumei-card-text);
   font-size: 14px;
   font-weight: 400;
   cursor: pointer;
@@ -291,24 +285,16 @@ function onRowClick(row: NodeWithStatus) {
 }
 
 .server-grid__row:nth-child(even) {
-  background: rgba(255, 255, 255, 0.11);
+  background: var(--koumei-row-even);
 }
 
 .server-grid__row:hover {
-  background:
-    radial-gradient(circle at 18% 50%, rgba(255, 255, 255, 0.32), transparent 34%),
-    radial-gradient(circle at 72% 50%, rgba(169, 216, 130, 0.13), transparent 38%),
-    rgba(255, 255, 255, 0.16);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.26),
-    inset 0 -1px 0 rgba(38, 49, 38, 0.035);
+  background: var(--koumei-row-hover);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .server-grid__row--active {
-  background:
-    radial-gradient(circle at 22% 50%, rgba(255, 255, 255, 0.34), transparent 36%),
-    radial-gradient(circle at 76% 52%, rgba(169, 216, 130, 0.16), transparent 40%),
-    rgba(255, 255, 255, 0.2);
+  background: var(--koumei-row-hover);
 }
 
 .server-grid__row > div:not(:has(.resource-bar)) {
@@ -352,9 +338,9 @@ function onRowClick(row: NodeWithStatus) {
 
 .server-grid__empty {
   min-width: 84rem;
-  border-top: 1px solid rgba(48, 65, 48, 0.055);
+  border-top: 1px solid var(--koumei-row-border);
   padding: 2.8rem 1rem;
-  color: rgba(31, 42, 31, 0.58);
+  color: var(--koumei-card-muted);
   font-size: 0.9rem;
   text-align: center;
 }
@@ -363,7 +349,7 @@ function onRowClick(row: NodeWithStatus) {
   display: inline-block;
   width: 0.62rem;
   height: 0.62rem;
-  border-radius: 999px;
+  border-radius: 8px;
   box-shadow: 0 0 0 3px rgba(96, 160, 74, 0.12);
 }
 
@@ -384,7 +370,7 @@ function onRowClick(row: NodeWithStatus) {
   height: 16px;
   overflow: hidden;
   border-radius: 4px;
-  background: rgba(31, 42, 31, 0.08);
+  background: var(--koumei-progress-track);
 }
 
 .resource-bar span {
@@ -399,7 +385,7 @@ function onRowClick(row: NodeWithStatus) {
   z-index: 1;
   width: 100%;
   padding: 0 0.28rem;
-  color: #263126;
+  color: var(--koumei-progress-text);
   font-size: 11px;
   font-weight: 600;
   line-height: 1;
@@ -439,66 +425,4 @@ function onRowClick(row: NodeWithStatus) {
   }
 }
 
-:global([data-theme='dark']) .server-card {
-  border-color: rgba(245, 244, 237, 0.1);
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.095), rgba(245, 244, 237, 0.04)),
-    rgba(20, 20, 19, 0.64);
-  box-shadow:
-    0 22px 68px rgba(0, 0, 0, 0.36),
-    0 2px 8px rgba(0, 0, 0, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.28);
-}
-
-:global([data-theme='dark']) .server-card::before {
-  background:
-    radial-gradient(circle at 18% 6%, rgba(255, 255, 255, 0.1), transparent 24%),
-    radial-gradient(circle at 84% 16%, rgba(217, 119, 87, 0.13), transparent 30%),
-    radial-gradient(circle at 48% 102%, rgba(120, 140, 93, 0.1), transparent 34%);
-  opacity: 0.9;
-}
-
-:global([data-theme='dark']) .server-card__header p {
-  color: rgba(245, 244, 237, 0.44);
-}
-
-:global([data-theme='dark']) .server-card__header h2 {
-  color: #f5f4ed;
-}
-
-:global([data-theme='dark']) .server-card__meta {
-  border-color: rgba(245, 244, 237, 0.1);
-  background: rgba(255, 255, 255, 0.055);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  color: rgba(245, 244, 237, 0.56);
-}
-
-:global([data-theme='dark']) .server-grid__head,
-:global([data-theme='dark']) .resource-bar strong {
-  color: #f5f4ed;
-}
-
-:global([data-theme='dark']) .server-grid__row {
-  border-top-color: rgba(245, 244, 237, 0.08);
-  color: #dedcd1;
-}
-
-:global([data-theme='dark']) .server-grid__row:nth-child(even) {
-  background: rgba(255, 255, 255, 0.025);
-}
-
-:global([data-theme='dark']) .server-grid__row:hover,
-:global([data-theme='dark']) .server-grid__row--active {
-  background: rgba(120, 140, 93, 0.18);
-}
-
-:global([data-theme='dark']) .server-grid__empty {
-  border-color: rgba(245, 244, 237, 0.09);
-  color: rgba(245, 244, 237, 0.58);
-}
-
-:global([data-theme='dark']) .resource-bar {
-  background: rgba(245, 244, 237, 0.08);
-}
 </style>
