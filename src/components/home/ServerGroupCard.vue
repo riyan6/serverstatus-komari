@@ -74,8 +74,8 @@ function onRowClick(row: NodeWithStatus) {
         <div role="columnheader">在线</div>
         <div role="columnheader">负载</div>
         <div role="columnheader">到期</div>
-        <div role="columnheader">网速 ↑|↓</div>
-        <div role="columnheader">流量 ↑|↓|%</div>
+        <div role="columnheader">网速 ↑ | ↓</div>
+        <div role="columnheader">流量 ↑ | ↓</div>
         <div role="columnheader">核心</div>
         <div role="columnheader">内存</div>
         <div role="columnheader">硬盘</div>
